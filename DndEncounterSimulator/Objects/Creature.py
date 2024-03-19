@@ -46,7 +46,8 @@ class Creature:
 
         :return: (int) The initiative rolled.
         """
-        pass
+        dexterity_mod = self.modifiers.get('dexterity', 0)
+        return dice.roll("1d20")[0] + dexterity_mod
 
     def damage(self, damages: int, type_of_damage: DamageType):
         """
@@ -55,7 +56,20 @@ class Creature:
         :param damages: (int) The quantity of damage done
         :param type_of_damage: (DamageType) The type of damage dealt by the attack
         """
-        pass
+        damage_reduction_factor = 1
+
+        if type_of_damage in self.immunities:
+            damage_reduction_factor = 0
+        elif type_of_damage in self.resistances:
+            damage_reduction_factor = 0.5
+        elif type_of_damage in self.vulnerabilities:
+            damage_reduction_factor = 2
+
+        actual_damage = int(damages * damage_reduction_factor)
+
+        self.hit_points -= actual_damage
+        if self.hit_points <= 0:
+            self.dead = True
 
     def change_weapon(self, index: int):
         """
@@ -63,7 +77,8 @@ class Creature:
 
         :param index: (int) the index referencing a weapon in weapons list
         """
-        pass
+        if 0 <= index < len(self.weapons):
+            self.weapons.insert(0, self.weapons.pop(index))
 
 
 class Monster(Creature):
@@ -100,7 +115,13 @@ class Monster(Creature):
         :param opponent: (Creature) The target of the attack.
         :param weapon: (Weapon) The weapon used to attack the enemy.
         """
-        pass
+        weapon_to_use = weapon if weapon else self.weapons[0]
+
+        attack_roll = dice.roll("1d20")[0] + self.proficiency
+        if attack_roll >= opponent.armor_class:
+            critical_hit = (attack_roll - self.proficiency) == 20
+            damage_dealt = weapon_to_use.deal_damage(self.modifiers.get(weapon_to_use.stat_to_hit, 0), critical_hit)
+            opponent.damage(damage_dealt, weapon_to_use.type_of_damage)
 
     def find_opponent(
         self, fighters: List[Creature], wounded_fighters=List[bool]
@@ -115,7 +136,13 @@ class Monster(Creature):
         :param wounded_fighters: (List[bool]) a list of booleans indicating if creatures are damaged or not.
         :return: (Union[None, int]) the index of the first enemy found, None otherwise.
         """
-        pass
+        enemy_camp = "blue" if self.camp == "red" else "red"
+
+        for index, (fighter, is_wounded) in enumerate(zip(fighters, wounded_fighters)):
+            if fighter.camp == enemy_camp and (is_wounded or not any(wounded_fighters)):
+                return index
+
+        return None
 
     def find_best_weapon(
         self,
@@ -130,4 +157,25 @@ class Monster(Creature):
 
         :return: (int) the index of the best weapon to use
         """
-        pass
+        max_damage = 0
+        best_weapon_index = -1
+
+        for index, weapon in enumerate(self.weapons):
+            average_damage = weapon.average_damage()
+
+            # Adjusting damage based on known factors - mimicking damage method logic
+            if weapon.type_of_damage in known_immunities:
+                continue
+            elif weapon.type_of_damage in known_resistances:
+                average_damage *= 0.5
+            elif weapon.type_of_damage in known_vulnerabilities:
+                average_damage *= 2
+                
+            if average_damage > max_damage:
+                max_damage = average_damage
+                best_weapon_index = index
+
+        if best_weapon_index == -1:
+            raise IndexError("No suitable weapon found.")
+
+        return best_weapon_index

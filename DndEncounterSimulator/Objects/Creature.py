@@ -46,8 +46,7 @@ class Creature:
 
         :return: (int) The initiative rolled.
         """
-        initiative = dice.roll("1d20")[0] + self.modifiers["dexterity"]
-        return initiative
+        pass
 
     def damage(self, damages: int, type_of_damage: DamageType):
         """
@@ -56,17 +55,7 @@ class Creature:
         :param damages: (int) The quantity of damage done
         :param type_of_damage: (DamageType) The type of damage dealt by the attack
         """
-        if type_of_damage in self.resistances:
-            self.hit_points -= damages // 2
-        elif type_of_damage in self.immunities:
-            self.hit_points = self.hit_points
-        elif type_of_damage in self.vulnerabilities:
-            self.hit_points -= damages * 2
-        else:
-            self.hit_points -= damages
-
-        if self.hit_points <= 0:
-            self.dead = True
+        pass
 
     def change_weapon(self, index: int):
         """
@@ -74,11 +63,7 @@ class Creature:
 
         :param index: (int) the index referencing a weapon in weapons list
         """
-        try:
-            choice = self.weapons.pop(index)
-            self.weapons.insert(0, choice)
-        except Exception as error:
-            logger.warning(f"Error: {error}, weapon not changed")
+        pass
 
 
 class Monster(Creature):
@@ -115,24 +100,7 @@ class Monster(Creature):
         :param opponent: (Creature) The target of the attack.
         :param weapon: (Weapon) The weapon used to attack the enemy.
         """
-        critical_hit = False
-
-        dice_roll = dice.roll("1d20")[0]
-        to_hit = dice_roll + self.proficiency + self.modifiers[weapon.stat_to_hit]
-
-        if dice_roll == 20:
-            critical_hit = True
-            hit = True
-        elif to_hit >= opponent.armor_class and dice_roll != 1:
-            hit = True
-        else:
-            hit = False
-
-        if hit:
-            damage_dealt = weapon.deal_damage(
-                modifier=self.modifiers[weapon.stat_to_hit], critical_hit=critical_hit
-            )
-            opponent.damage(damages=damage_dealt, type_of_damage=weapon.type_of_damage)
+        pass
 
     def find_opponent(
         self, fighters: List[Creature], wounded_fighters=List[bool]
@@ -147,15 +115,7 @@ class Monster(Creature):
         :param wounded_fighters: (List[bool]) a list of booleans indicating if creatures are damaged or not.
         :return: (Union[None, int]) the index of the first enemy found, None otherwise.
         """
-        best_opponent = None
-        for (index, fighter) in enumerate(fighters):
-            if fighter.camp != self.camp:
-                if wounded_fighters[index] is True:
-                    best_opponent = index
-                else:
-                    if not isinstance(best_opponent, int):
-                        best_opponent = index
-        return best_opponent
+        pass
 
     def find_best_weapon(
         self,
@@ -170,31 +130,4 @@ class Monster(Creature):
 
         :return: (int) the index of the best weapon to use
         """
-        if len(self.weapons) == 0:
-            raise IndexError("This monster has no weapon.")
-
-        best_weapon = 0
-        if self.weapons[best_weapon].type_of_damage in known_resistances:
-            best_mean = self.weapons[best_weapon].average_damage() / 2
-        elif self.weapons[best_weapon].type_of_damage in known_immunities:
-            best_mean = 0
-        elif self.weapons[best_weapon].type_of_damage in known_vulnerabilities:
-            best_mean = self.weapons[best_weapon].average_damage() * 2
-        else:
-            best_mean = self.weapons[best_weapon].average_damage()
-
-        for (index, weapon) in enumerate(self.weapons):
-            if weapon.type_of_damage in known_resistances:
-                temporary_mean = weapon.average_damage() / 2
-            elif weapon.type_of_damage in known_immunities:
-                temporary_mean = 0
-            elif weapon.type_of_damage in known_vulnerabilities:
-                temporary_mean = weapon.average_damage() * 2
-            else:
-                temporary_mean = weapon.average_damage()
-
-            # comparison by max damage possible. No change if both means are identical
-            if temporary_mean > best_mean:
-                best_weapon = index
-                best_mean = temporary_mean
-        return best_weapon
+        pass
